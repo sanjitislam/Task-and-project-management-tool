@@ -155,6 +155,55 @@ class WorkspaceModel extends Model
             [$workspaceId, $userId]
         );
     }
+
+    /* ============ STEP 7: MEMBERSHIP METHODS ============ */
+
+    /**
+     * Get all workspaces (simple list — id and name only).
+     * Used in dropdown of invite form.
+     */
+    public function getAllSimple()
+    {
+        return $this->db->select(
+            "SELECT id, name, plan, is_active 
+             FROM workspaces 
+             ORDER BY name ASC"
+        );
+    }
+
+    /**
+     * Check if a user is already a member of a workspace.
+     */
+    public function isMember($workspaceId, $userId)
+    {
+        $row = $this->db->selectOne(
+            "SELECT id FROM workspace_members 
+             WHERE workspace_id = ? AND user_id = ? LIMIT 1",
+            "ii",
+            [$workspaceId, $userId]
+        );
+        return $row !== null;
+    }
+
+    /**
+     * Add a user to a workspace with a specific role.
+     */
+    public function addMember($workspaceId, $userId, $workspaceRole)
+    {
+        $allowed = ['member', 'lead', 'client', 'admin'];
+        if (!in_array($workspaceRole, $allowed)) {
+            return false;
+        }
+
+        return $this->db->execute(
+            "INSERT INTO workspace_members 
+             (workspace_id, user_id, workspace_role, joined_at)
+             VALUES (?, ?, ?, NOW())",
+            "iis",
+            [$workspaceId, $userId, $workspaceRole]
+        );
+    }
+
     
 }
 

@@ -97,4 +97,33 @@ function clear_old()
     unset($_SESSION['old']);
 }
 
+
+/**
+ * Generate a random secure password.
+ * Used when admin invites a new user — they get a temp password to log in with.
+ */
+function generate_random_password($length = 10)
+{
+    $chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789abcdefghjkmnpqrstuvwxyz';
+    // Excluded confusing chars: I/l/1, O/0
+    $password = '';
+    for ($i = 0; $i < $length; $i++) {
+        $password .= $chars[random_int(0, strlen($chars) - 1)];
+    }
+    return $password;
+}
+
+/**
+ * Generate a random workspace invite code.
+ */
+function generate_invite_code($length = 8)
+{
+    $chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    $code = '';
+    for ($i = 0; $i < $length; $i++) {
+        $code .= $chars[random_int(0, strlen($chars) - 1)];
+    }
+    return $code;
+}
+
 ?>

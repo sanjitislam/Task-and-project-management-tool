@@ -188,6 +188,52 @@ class UserModel extends Model
             [$newRole, $id]
         );
     }
+    
+
+    /* ============ STEP 7: CREATION METHODS ============ */
+
+    /**
+     * Check if an email is already in use.
+     */
+    public function emailExists($email)
+    {
+        $row = $this->db->selectOne(
+            "SELECT id FROM users WHERE email = ? LIMIT 1",
+            "s",
+            [$email]
+        );
+        return $row !== null;
+    }
+
+    /**
+     * Create a new user (used for both admin creation and invitations).
+     *
+     * @param array $data  Must include: name, email, password (plain), role
+     *                     Optional: phone
+     * @return int|false   New user's ID, or false on failure.
+     */
+    public function create($data)
+    {
+        // Hash the password securely
+        $hash = password_hash($data['password'], PASSWORD_DEFAULT);
+
+        $result = $this->db->execute(
+            "INSERT INTO users 
+             (name, email, password_hash, phone, role, is_active, created_at)
+             VALUES (?, ?, ?, ?, ?, 1, NOW())",
+            "sssss",
+            [
+                $data['name'],
+                $data['email'],
+                $hash,
+                $data['phone'] ?? '',
+                $data['role']
+            ]
+        );
+
+        return $result > 0 ? $result : false;
+    }
+
 }
 
 ?>

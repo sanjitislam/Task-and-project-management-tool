@@ -11,10 +11,19 @@ $role   = $role   ?? '';
 ?>
 
 <div class="page-header">
-    <h2>👥 User Management</h2>
-    <span class="badge"><?= count($users) ?> user(s)</span>
+    <div>
+        <h2>👥 User Management</h2>
+        <span class="badge"><?= count($users) ?> user(s)</span>
+    </div>
+    <div class="header-actions">
+        <a href="<?= BASE_URL ?>users/createAdmin" class="btn btn-success btn-small">
+            ➕ Create Admin
+        </a>
+        <a href="<?= BASE_URL ?>users/invite" class="btn btn-primary btn-small">
+            📨 Invite User
+        </a>
+    </div>
 </div>
-
 <!-- Search + Filter Bar -->
 <div class="card search-card">
     <div class="search-bar">
