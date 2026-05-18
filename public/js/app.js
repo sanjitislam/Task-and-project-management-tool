@@ -1,7 +1,3 @@
-/**
- * Task Management Admin — JavaScript
- */
-
 const BASE_URL = '/task_management/';
 
 function getCsrfToken() {
@@ -110,7 +106,52 @@ document.addEventListener('DOMContentLoaded', function () {
 
     attachUserEvents();
 
-    // =============== Generic delete confirmations ===============
+    // =============== PROJECTS ===============
+    const projWorkspaceFilter = document.getElementById('projectWorkspaceFilter');
+    const projStatusFilter    = document.getElementById('projectStatusFilter');
+    const projLeadFilter      = document.getElementById('projectLeadFilter');
+    const projClearBtn        = document.getElementById('clearProjectFilters');
+
+    function performProjectFilter() {
+        const ind = document.getElementById('projectFilterIndicator');
+        if (ind) ind.textContent = '⏳';
+
+        const params = new URLSearchParams();
+        if (projWorkspaceFilter && projWorkspaceFilter.value) {
+            params.append('workspace_id', projWorkspaceFilter.value);
+        }
+        if (projStatusFilter && projStatusFilter.value) {
+            params.append('status', projStatusFilter.value);
+        }
+        if (projLeadFilter && projLeadFilter.value) {
+            params.append('team_lead_id', projLeadFilter.value);
+        }
+
+        fetch(BASE_URL + 'api/project_search.php?' + params.toString())
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('projectList').innerHTML = data.html;
+                    if (ind) ind.textContent = data.count + ' result(s)';
+                }
+            })
+            .catch(err => { if (ind) ind.textContent = '❌'; });
+    }
+
+    [projWorkspaceFilter, projStatusFilter, projLeadFilter].forEach(el => {
+        if (el) el.addEventListener('change', performProjectFilter);
+    });
+
+    if (projClearBtn) {
+        projClearBtn.addEventListener('click', function () {
+            if (projWorkspaceFilter) projWorkspaceFilter.value = '';
+            if (projStatusFilter)    projStatusFilter.value = '';
+            if (projLeadFilter)      projLeadFilter.value = '';
+            performProjectFilter();
+        });
+    }
+
+    // =============== Generic ===============
     attachDeleteConfirmations();
 });
 
@@ -171,7 +212,6 @@ function attachWorkspaceEvents() {
 }
 
 function attachUserEvents() {
-    // Toggle user status
     document.querySelectorAll('.toggle-user-status').forEach(btn => {
         if (btn.dataset.bound) return;
         btn.dataset.bound = '1';
@@ -212,7 +252,6 @@ function attachUserEvents() {
         });
     });
 
-    // Change user role (dropdown)
     document.querySelectorAll('.role-select').forEach(sel => {
         if (sel.dataset.bound) return;
         sel.dataset.bound = '1';
@@ -241,7 +280,6 @@ function attachUserEvents() {
             .then(r => r.json())
             .then(data => {
                 if (data.success) {
-                    // Update visual class for the badge color
                     this.className = 'role-select badge-role-' + data.new_role;
                     this.dataset.current = data.new_role;
                     flashElement(this);

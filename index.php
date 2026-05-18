@@ -57,6 +57,7 @@ $routes = [
     'dashboard' => ['DashboardController', 'index'],
     'workspaces' => ['WorkspaceController', 'index'],
     'users'     => ['UserController',      'index'],
+    'projects'  => ['ProjectController',   'index'],
 ];
 
 // ---------- Dispatch ----------
