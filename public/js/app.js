@@ -4,7 +4,6 @@
 
 const BASE_URL = '/task_management/';
 
-// Helper to get the CSRF token from the page (we'll add it to a meta tag)
 function getCsrfToken() {
     const meta = document.querySelector('meta[name="csrf-token"]');
     return meta ? meta.getAttribute('content') : '';
@@ -12,9 +11,7 @@ function getCsrfToken() {
 
 document.addEventListener('DOMContentLoaded', function () {
 
-    // =================================================
-    // DASHBOARD: Refresh Stats button
-    // =================================================
+    // =============== DASHBOARD ===============
     const refreshBtn = document.getElementById('refreshStats');
     if (refreshBtn) {
         refreshBtn.addEventListener('click', function () {
@@ -23,7 +20,7 @@ document.addEventListener('DOMContentLoaded', function () {
             refreshBtn.innerHTML = '⏳ Loading...';
 
             fetch(BASE_URL + 'api/dashboard_stats.php')
-                .then(response => response.json())
+                .then(r => r.json())
                 .then(data => {
                     if (data.success) {
                         updateStat('stat-workspaces', data.stats.total_workspaces);
@@ -44,74 +41,96 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // ===================================================
-    // WORKSPACES: Live search (AJAX)
-    // =================================================
-    const searchInput = document.getElementById('workspaceSearch');
-    const indicator   = document.getElementById('searchIndicator');
-    const listDiv     = document.getElementById('workspaceList');
+    // =============== WORKSPACES ===============
+    const workspaceSearch = document.getElementById('workspaceSearch');
+    if (workspaceSearch) {
+        let timer;
+        workspaceSearch.addEventListener('input', function () {
+            clearTimeout(timer);
+            const ind = document.getElementById('searchIndicator');
+            if (ind) ind.textContent = '⏳';
 
-    if (searchInput) {
-        let debounceTimer;
-
-        searchInput.addEventListener('input', function () {
-            // Debounce — wait 300ms after typing stops
-            clearTimeout(debounceTimer);
-            indicator.textContent = '⏳';
-
-            debounceTimer = setTimeout(() => {
-                const query = searchInput.value.trim();
-
-                fetch(BASE_URL + 'api/workspace_search.php?q=' + encodeURIComponent(query))
-                    .then(response => response.json())
+            timer = setTimeout(() => {
+                const q = workspaceSearch.value.trim();
+                fetch(BASE_URL + 'api/workspace_search.php?q=' + encodeURIComponent(q))
+                    .then(r => r.json())
                     .then(data => {
                         if (data.success) {
-                            listDiv.innerHTML = data.html;
-                            indicator.textContent = data.count + ' result(s)';
-                            // Re-attach event handlers (since DOM was replaced)
+                            document.getElementById('workspaceList').innerHTML = data.html;
+                            if (ind) ind.textContent = data.count + ' result(s)';
                             attachWorkspaceEvents();
-                        } else {
-                            indicator.textContent = '❌ Error';
                         }
                     })
-                    .catch(err => {
-                        indicator.textContent = '❌';
-                        console.error(err);
-                    });
+                    .catch(err => { if (ind) ind.textContent = '❌'; });
             }, 300);
         });
     }
-
-    // =================================================
-    // Initial wiring for workspace action buttons
-    // =================================================
     attachWorkspaceEvents();
 
-    // =================================================
-    // Generic delete confirmation
-    // =================================================
+    // =============== USERS ===============
+    const userSearch = document.getElementById('userSearch');
+    const userRoleFilter = document.getElementById('userRoleFilter');
+
+    function performUserSearch() {
+        const ind = document.getElementById('userSearchIndicator');
+        if (ind) ind.textContent = '⏳';
+
+        const q = userSearch ? userSearch.value.trim() : '';
+        const r = userRoleFilter ? userRoleFilter.value : '';
+
+        const params = new URLSearchParams();
+        if (q) params.append('q', q);
+        if (r) params.append('role', r);
+
+        fetch(BASE_URL + 'api/user_search.php?' + params.toString())
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('userList').innerHTML = data.html;
+                    if (ind) ind.textContent = data.count + ' result(s)';
+                    attachUserEvents();
+                }
+            })
+            .catch(err => { if (ind) ind.textContent = '❌'; });
+    }
+
+    if (userSearch) {
+        let userTimer;
+        userSearch.addEventListener('input', function () {
+            clearTimeout(userTimer);
+            const ind = document.getElementById('userSearchIndicator');
+            if (ind) ind.textContent = '⏳';
+            userTimer = setTimeout(performUserSearch, 300);
+        });
+    }
+
+    if (userRoleFilter) {
+        userRoleFilter.addEventListener('change', performUserSearch);
+    }
+
+    attachUserEvents();
+
+    // =============== Generic delete confirmations ===============
     attachDeleteConfirmations();
 });
 
-// ---------- Helpers ----------
+// ============ HELPERS ============
 
 function updateStat(elementId, newValue) {
     const el = document.getElementById(elementId);
     if (el) {
         el.textContent = newValue;
         el.classList.remove('flash-update');
-        void el.offsetWidth;  // trigger reflow
+        void el.offsetWidth;
         el.classList.add('flash-update');
     }
 }
 
-/**
- * Attach click handlers to toggle-status and delete buttons.
- * Called on initial load AND after AJAX replaces table contents.
- */
 function attachWorkspaceEvents() {
-    // Toggle active/inactive
     document.querySelectorAll('.toggle-status').forEach(btn => {
+        if (btn.dataset.bound) return;
+        btn.dataset.bound = '1';
+
         btn.addEventListener('click', function () {
             const id = this.dataset.id;
             const originalHTML = this.innerHTML;
@@ -121,10 +140,7 @@ function attachWorkspaceEvents() {
             fetch(BASE_URL + 'api/workspace_toggle.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    id: id,
-                    csrf_token: getCsrfToken()
-                })
+                body: JSON.stringify({ id: id, csrf_token: getCsrfToken() })
             })
             .then(r => r.json())
             .then(data => {
@@ -154,12 +170,105 @@ function attachWorkspaceEvents() {
     attachDeleteConfirmations();
 }
 
+function attachUserEvents() {
+    // Toggle user status
+    document.querySelectorAll('.toggle-user-status').forEach(btn => {
+        if (btn.dataset.bound) return;
+        btn.dataset.bound = '1';
+
+        btn.addEventListener('click', function () {
+            const id = this.dataset.id;
+            const originalHTML = this.innerHTML;
+            this.disabled = true;
+            this.innerHTML = '⏳';
+
+            fetch(BASE_URL + 'api/user_toggle.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: id, csrf_token: getCsrfToken() })
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    if (data.is_active) {
+                        this.classList.remove('inactive');
+                        this.classList.add('active');
+                        this.innerHTML = '✅ Active';
+                    } else {
+                        this.classList.remove('active');
+                        this.classList.add('inactive');
+                        this.innerHTML = '⛔ Inactive';
+                    }
+                } else {
+                    this.innerHTML = originalHTML;
+                    alert('Error: ' + data.message);
+                }
+            })
+            .catch(err => {
+                this.innerHTML = originalHTML;
+                alert('Network error: ' + err.message);
+            })
+            .finally(() => { this.disabled = false; });
+        });
+    });
+
+    // Change user role (dropdown)
+    document.querySelectorAll('.role-select').forEach(sel => {
+        if (sel.dataset.bound) return;
+        sel.dataset.bound = '1';
+
+        sel.addEventListener('change', function () {
+            const id = this.dataset.id;
+            const oldRole = this.dataset.current;
+            const newRole = this.value;
+
+            if (!confirm('Change role to "' + newRole.replace('_',' ') + '"?')) {
+                this.value = oldRole;
+                return;
+            }
+
+            this.disabled = true;
+
+            fetch(BASE_URL + 'api/user_role.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    id: id,
+                    role: newRole,
+                    csrf_token: getCsrfToken()
+                })
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    // Update visual class for the badge color
+                    this.className = 'role-select badge-role-' + data.new_role;
+                    this.dataset.current = data.new_role;
+                    flashElement(this);
+                } else {
+                    this.value = oldRole;
+                    alert('Error: ' + data.message);
+                }
+            })
+            .catch(err => {
+                this.value = oldRole;
+                alert('Network error: ' + err.message);
+            })
+            .finally(() => { this.disabled = false; });
+        });
+    });
+}
+
+function flashElement(el) {
+    el.classList.remove('flash-update');
+    void el.offsetWidth;
+    el.classList.add('flash-update');
+}
+
 function attachDeleteConfirmations() {
     document.querySelectorAll('.confirm-delete').forEach(link => {
-        // Avoid double-binding
         if (link.dataset.bound) return;
         link.dataset.bound = '1';
-
         link.addEventListener('click', function (e) {
             const name = this.dataset.name || 'this item';
             if (!confirm('⚠️ Delete "' + name + '"?\n\nThis cannot be undone.')) {
@@ -171,7 +280,6 @@ function attachDeleteConfirmations() {
     document.querySelectorAll('.confirm-remove').forEach(link => {
         if (link.dataset.bound) return;
         link.dataset.bound = '1';
-
         link.addEventListener('click', function (e) {
             const name = this.dataset.name || 'this member';
             if (!confirm('Remove ' + name + ' from this workspace?')) {

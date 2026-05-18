@@ -1,20 +1,12 @@
 <?php
-/**
- * User Model
- * --------------------------------------
- * Handles all database queries for the `users` table.
- * NO HTML, NO business logic — only data access.
- */
-
 if (!defined('APP_RUNNING')) {
     die('Direct access not allowed.');
 }
 
 class UserModel extends Model
 {
-    /**
-     * Find a user by email (used during login).
-     */
+    /* ============ AUTH METHODS (from Step 3) ============ */
+
     public function findByEmail($email)
     {
         return $this->db->selectOne(
@@ -24,9 +16,6 @@ class UserModel extends Model
         );
     }
 
-    /**
-     * Find a user by ID.
-     */
     public function findById($id)
     {
         return $this->db->selectOne(
@@ -36,52 +25,31 @@ class UserModel extends Model
         );
     }
 
-    /**
-     * Verify a user's password against the stored hash.
-     * Returns the user array if correct, false if not.
-     */
     public function verifyLogin($email, $password)
     {
         $user = $this->findByEmail($email);
 
-        if (!$user) {
-            return false;
-        }
-
-        if (!$user['is_active']) {
-            return 'inactive';   // signal that account is disabled
-        }
-
-        if (!password_verify($password, $user['password_hash'])) {
-            return false;
-        }
+        if (!$user) return false;
+        if (!$user['is_active']) return 'inactive';
+        if (!password_verify($password, $user['password_hash'])) return false;
 
         return $user;
     }
 
-    /**
-     * Count total users in the system.
-     */
-    public function countAll(){
+    /* ============ STAT METHODS (from Step 4) ============ */
 
-       $row = $this->db->selectOne("SELECT COUNT(*) AS total FROM users");
-       return (int)($row['total'] ?? 0);
+    public function countAll()
+    {
+        $row = $this->db->selectOne("SELECT COUNT(*) AS total FROM users");
+        return (int)($row['total'] ?? 0);
     }
 
-    /**
-     * Count users grouped by role.
-     * Returns array like: ['admin' => 2, 'member' => 5, ...]
-     */
-    
     public function countByRole()
     {
         $rows = $this->db->select(
-            "SELECT role, COUNT(*) AS total 
-             FROM users 
-             GROUP BY role"
+            "SELECT role, COUNT(*) AS total FROM users GROUP BY role"
         );
 
-        // Initialize all roles to 0 (so missing roles still show)
         $counts = [
             'admin'     => 0,
             'team_lead' => 0,
@@ -96,8 +64,130 @@ class UserModel extends Model
         return $counts;
     }
 
+    /* ============ NEW: MANAGEMENT METHODS ============ */
 
+    /**
+     * Get all users with their workspace count.
+     * Optional: filter by search keyword and/or role.
+     */
+    public function getAll($search = '', $role = '')
+    {
+        $sql = "
+            SELECT 
+                u.id, u.name, u.email, u.phone, u.role, 
+                u.is_active, u.created_at,
+                (SELECT COUNT(*) FROM workspace_members wm 
+                 WHERE wm.user_id = u.id) AS workspace_count
+            FROM users u
+            WHERE 1=1
+        ";
+
+        $types = '';
+        $params = [];
+
+        if (!empty($search)) {
+            $sql .= " AND (u.name LIKE ? OR u.email LIKE ?) ";
+            $like = '%' . $search . '%';
+            $types .= 'ss';
+            $params[] = $like;
+            $params[] = $like;
+        }
+
+        if (!empty($role)) {
+            $sql .= " AND u.role = ? ";
+            $types .= 's';
+            $params[] = $role;
+        }
+
+        $sql .= " ORDER BY u.created_at DESC";
+
+        if (empty($params)) {
+            return $this->db->select($sql);
+        }
+        return $this->db->select($sql, $types, $params);
+    }
+
+    /**
+     * Get a user's detailed profile with workspace memberships.
+     */
+    public function getProfile($id)
+    {
+        $user = $this->findById($id);
+        if (!$user) return null;
+
+        // Get workspaces this user belongs to
+        $workspaces = $this->db->select(
+            "SELECT 
+                w.id, w.name, w.plan, w.is_active,
+                wm.workspace_role, wm.joined_at
+             FROM workspace_members wm
+             INNER JOIN workspaces w ON wm.workspace_id = w.id
+             WHERE wm.user_id = ?
+             ORDER BY wm.joined_at DESC",
+            "i",
+            [$id]
+        );
+
+        // Count tasks assigned to this user
+        $taskCount = $this->db->selectOne(
+            "SELECT COUNT(*) AS total FROM tasks WHERE assigned_to = ?",
+            "i",
+            [$id]
+        );
+
+        // Count projects this user is a member of
+        $projectCount = $this->db->selectOne(
+            "SELECT COUNT(*) AS total FROM project_members WHERE user_id = ?",
+            "i",
+            [$id]
+        );
+
+        $user['workspaces'] = $workspaces;
+        $user['task_count'] = (int)($taskCount['total'] ?? 0);
+        $user['project_count'] = (int)($projectCount['total'] ?? 0);
+
+        return $user;
+    }
+
+    /**
+     * Toggle active/inactive.
+     */
+    public function toggleActive($id)
+    {
+        return $this->db->execute(
+            "UPDATE users SET is_active = NOT is_active WHERE id = ?",
+            "i",
+            [$id]
+        );
+    }
+
+    public function getActiveStatus($id)
+    {
+        $row = $this->db->selectOne(
+            "SELECT is_active FROM users WHERE id = ?",
+            "i",
+            [$id]
+        );
+        return $row ? (int)$row['is_active'] : null;
+    }
+
+    /**
+     * Change user's role.
+     * Allowed roles: member, team_lead, client, admin
+     */
+    public function changeRole($id, $newRole)
+    {
+        $allowed = ['member', 'team_lead', 'client', 'admin'];
+        if (!in_array($newRole, $allowed)) {
+            return false;
+        }
+
+        return $this->db->execute(
+            "UPDATE users SET role = ? WHERE id = ?",
+            "si",
+            [$newRole, $id]
+        );
+    }
 }
-
 
 ?>
