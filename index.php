@@ -55,6 +55,7 @@ $routes = [
     'login'     => ['AuthController',      'login'],
     'logout'    => ['AuthController',      'logout'],
     'dashboard' => ['DashboardController', 'index'],
+    'workspaces' => ['WorkspaceController', 'index'],
 ];
 
 // ---------- Dispatch ----------

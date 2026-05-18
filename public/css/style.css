@@ -350,3 +350,148 @@ body {
     0%   { background: #fff9c4; }
     100% { background: transparent; }
 }
+
+/* ============ DATA TABLES ============ */
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+.data-table thead {
+    background: #f4f6f9;
+    border-bottom: 2px solid #e1e4e8;
+}
+
+.data-table th {
+    text-align: left;
+    padding: 12px;
+    color: #34495e;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 12px;
+    letter-spacing: 0.5px;
+}
+
+.data-table td {
+    padding: 12px;
+    border-bottom: 1px solid #f0f2f5;
+    vertical-align: middle;
+}
+
+.data-table tr:hover {
+    background: #fafbfc;
+}
+
+.data-table .actions {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.text-muted {
+    color: #95a5a6;
+    font-size: 12px;
+}
+
+.empty-state {
+    text-align: center;
+    color: #95a5a6;
+    padding: 40px;
+    font-style: italic;
+}
+
+/* ============ BADGES ============ */
+.badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    background: #ecf0f1;
+    color: #7f8c8d;
+}
+
+.badge-free  { background: #d1ecf1; color: #0c5460; }
+.badge-pro   { background: #d4edda; color: #155724; }
+.badge-info  { background: #cfe2ff; color: #084298; }
+
+/* ============ SEARCH ============ */
+.search-card {
+    padding: 16px;
+}
+
+.search-bar {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.search-bar input {
+    flex: 1;
+    padding: 10px 14px;
+    border: 1px solid #d0d7de;
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+.search-bar input:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102,126,234,0.15);
+}
+
+.search-indicator {
+    font-size: 13px;
+    color: #7f8c8d;
+    min-width: 80px;
+}
+
+/* ============ TOGGLE STATUS BUTTON ============ */
+.toggle-status {
+    border: none;
+    cursor: pointer;
+    padding: 5px 12px;
+    border-radius: 16px;
+    font-size: 12px;
+    font-weight: 600;
+    transition: all 0.2s;
+}
+
+.toggle-status.active {
+    background: #d4edda;
+    color: #155724;
+}
+
+.toggle-status.active:hover {
+    background: #c3e6cb;
+}
+
+.toggle-status.inactive {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.toggle-status.inactive:hover {
+    background: #f5c6cb;
+}
+
+.toggle-status:disabled {
+    opacity: 0.5;
+    cursor: wait;
+}
+
+/* ============ STATUS INDICATORS ============ */
+.status-active { color: #27ae60; font-weight: 600; }
+.status-inactive { color: #e74c3c; font-weight: 600; }
+
+/* ============ PAGE HEADER EXTRAS ============ */
+.page-header .badge {
+    background: #ecf0f1;
+    color: #2c3e50;
+    padding: 4px 12px;
+    font-size: 12px;
+}
