@@ -1,38 +1,31 @@
 <?php
 define('APP_RUNNING', true);
 
-echo "<h2>File existence check:</h2>";
+echo "<h2>Step 4 File Check:</h2>";
 
 $files = [
-    'core/Database.php',
-    'core/Model.php',
-    'core/Controller.php',
-    'core/Auth.php',
-    'helpers/functions.php',
-    'helpers/validation.php'
+    'controllers/DashboardController.php',
+    'models/UserModel.php',
+    'models/WorkspaceModel.php',
+    'models/ProjectModel.php',
+    'models/TaskModel.php',
+    'views/layouts/header.php',
+    'views/layouts/sidebar.php',
+    'views/layouts/footer.php',
+    'views/dashboard/index.php',
+    'public/css/style.css',
+    'public/js/app.js',
+    'api/dashboard_stats.php'
 ];
 
 foreach ($files as $f) {
     $path = __DIR__ . '/' . $f;
     if (file_exists($path)) {
-        echo "✅ EXISTS: $f<br>";
+        $size = filesize($path);
+        echo "✅ EXISTS ({$size} bytes): $f<br>";
     } else {
         echo "❌ MISSING: $f<br>";
     }
-}
-
-echo "<h2>Loading validation.php and checking validate() function:</h2>";
-
-if (file_exists(__DIR__ . '/helpers/validation.php')) {
-    require_once __DIR__ . '/helpers/validation.php';
-    
-    if (function_exists('validate')) {
-        echo "✅ validate() function is available!";
-    } else {
-        echo "❌ validate() function NOT defined in validation.php";
-    }
-} else {
-    echo "❌ Cannot load validation.php — file missing";
 }
 
 ?>

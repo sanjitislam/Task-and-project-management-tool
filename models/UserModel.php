@@ -58,6 +58,45 @@ class UserModel extends Model
 
         return $user;
     }
+
+    /**
+     * Count total users in the system.
+     */
+    public function countAll(){
+
+       $row = $this->db->selectOne("SELECT COUNT(*) AS total FROM users");
+       return (int)($row['total'] ?? 0);
+    }
+
+    /**
+     * Count users grouped by role.
+     * Returns array like: ['admin' => 2, 'member' => 5, ...]
+     */
+    
+    public function countByRole()
+    {
+        $rows = $this->db->select(
+            "SELECT role, COUNT(*) AS total 
+             FROM users 
+             GROUP BY role"
+        );
+
+        // Initialize all roles to 0 (so missing roles still show)
+        $counts = [
+            'admin'     => 0,
+            'team_lead' => 0,
+            'member'    => 0,
+            'client'    => 0
+        ];
+
+        foreach ($rows as $row) {
+            $counts[$row['role']] = (int)$row['total'];
+        }
+
+        return $counts;
+    }
+
+
 }
 
 
