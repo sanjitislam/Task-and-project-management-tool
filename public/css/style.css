@@ -830,3 +830,67 @@ body {
     color: #2c3e50;
     font-size: 14px;
 }
+
+/* ============ TASK STATUS BADGES ============ */
+.badge-task-todo        { background: #e9ecef; color: #495057; }
+.badge-task-in_progress { background: #cce5ff; color: #004085; }
+.badge-task-review      { background: #fff3cd; color: #856404; }
+.badge-task-done        { background: #d4edda; color: #155724; }
+
+/* ============ PRIORITY BADGES ============ */
+.badge-priority-low      { background: #d1ecf1; color: #0c5460; }
+.badge-priority-medium   { background: #fff3cd; color: #856404; }
+.badge-priority-high     { background: #ffe5d0; color: #b54000; }
+.badge-priority-critical { background: #f8d7da; color: #721c24; font-weight: 700; }
+
+/* ============ COMMENTS ============ */
+.comments-list {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.comment-item {
+    background: #f8f9fa;
+    padding: 14px;
+    border-radius: 8px;
+    border-left: 3px solid #d0d7de;
+}
+
+.comment-internal {
+    background: #fff8e1;
+    border-left-color: #f39c12;
+}
+
+.comment-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+}
+
+.comment-body {
+    color: #2c3e50;
+    font-size: 14px;
+    line-height: 1.5;
+    white-space: pre-wrap;
+}
+
+.badge-warning {
+    background: #fff3cd;
+    color: #856404;
+}
+
+/* ============ FILTER INDICATOR (more space for tasks) ============ */
+.filter-card .filter-row .filter-group {
+    min-width: 160px;
+}
+
+/* ============ INFO GRID — 2 columns on wide screens ============ */
+@media (min-width: 900px) {
+    .info-grid {
+        grid-template-columns: 1fr 1fr;
+        column-gap: 30px;
+    }
+}

@@ -151,6 +151,48 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    // =============== TASKS ===============
+    const taskStatusFilter   = document.getElementById('taskStatusFilter');
+    const taskPriorityFilter = document.getElementById('taskPriorityFilter');
+    const taskAssigneeFilter = document.getElementById('taskAssigneeFilter');
+    const taskProjectFilter  = document.getElementById('taskProjectFilter');
+    const taskClearBtn       = document.getElementById('clearTaskFilters');
+
+    function performTaskFilter() {
+        const ind = document.getElementById('taskFilterIndicator');
+        if (ind) ind.textContent = '⏳';
+
+        const params = new URLSearchParams();
+        if (taskStatusFilter   && taskStatusFilter.value)   params.append('status',      taskStatusFilter.value);
+        if (taskPriorityFilter && taskPriorityFilter.value) params.append('priority',    taskPriorityFilter.value);
+        if (taskAssigneeFilter && taskAssigneeFilter.value) params.append('assignee_id', taskAssigneeFilter.value);
+        if (taskProjectFilter  && taskProjectFilter.value)  params.append('project_id',  taskProjectFilter.value);
+
+        fetch(BASE_URL + 'api/task_search.php?' + params.toString())
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('taskList').innerHTML = data.html;
+                    if (ind) ind.textContent = data.count + ' result(s)';
+                }
+            })
+            .catch(err => { if (ind) ind.textContent = '❌'; });
+    }
+
+    [taskStatusFilter, taskPriorityFilter, taskAssigneeFilter, taskProjectFilter].forEach(el => {
+        if (el) el.addEventListener('change', performTaskFilter);
+    });
+
+    if (taskClearBtn) {
+        taskClearBtn.addEventListener('click', function () {
+            if (taskStatusFilter)   taskStatusFilter.value = '';
+            if (taskPriorityFilter) taskPriorityFilter.value = '';
+            if (taskAssigneeFilter) taskAssigneeFilter.value = '';
+            if (taskProjectFilter)  taskProjectFilter.value = '';
+            performTaskFilter();
+        });
+    }
+   
     // =============== Generic ===============
     attachDeleteConfirmations();
 });

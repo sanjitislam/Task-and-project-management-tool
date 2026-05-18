@@ -58,6 +58,8 @@ $routes = [
     'workspaces' => ['WorkspaceController', 'index'],
     'users'     => ['UserController',      'index'],
     'projects'  => ['ProjectController',   'index'],
+    'tasks'     => ['TaskController',      'index'],
+    
 ];
 
 // ---------- Dispatch ----------
