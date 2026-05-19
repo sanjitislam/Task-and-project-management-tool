@@ -101,11 +101,15 @@ class UserController extends Controller
                 ]);
 
                 if ($newId) {
-                    set_flash('success',
-                        'Admin account "' . htmlspecialchars($_POST['name']) . '" created successfully!'
-                    );
-                    clear_old();
-                    redirect('users');
+                     ActivityLogger::log(
+                    'admin_created',
+                     'New admin created: ' . $_POST['name'] . ' (' . $_POST['email'] . ')'
+                     );
+                     set_flash('success',
+                    'Admin account "' . htmlspecialchars($_POST['name']) . '" created successfully!'
+                       );
+                     clear_old();
+                      redirect('users');
                 } else {
                     $errors['general'] = 'Failed to create admin account. Please try again.';
                 }
@@ -207,7 +211,11 @@ class UserController extends Controller
 
                     if ($newUserId) {
                         $workspaceModel->addMember($workspaceId, $newUserId, $wsRole);
-
+                         ActivityLogger::log(
+                         'user_invited',
+                         'New user invited: ' . $email . ' to workspace "' . $workspace['name'] . '" as ' . $wsRole,
+                         $workspaceId
+                          );
                         // We show the temp password ONCE on the form result page
                         $inviteResult = [
                             'email'        => $email,

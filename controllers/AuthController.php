@@ -55,9 +55,10 @@ class AuthController extends Controller
                     $errors['general'] = 'This login is for administrators only.';
                 } else {
                     // ✅ Success
-                    Auth::login($result);
-                    set_flash('success', 'Welcome back, ' . $result['name'] . '!');
-                    redirect('dashboard');
+                     Auth::login($result);
+                     ActivityLogger::log('user_login', 'Admin logged in: ' . $result['email']);
+                     set_flash('success', 'Welcome back, ' . $result['name'] . '!');
+                     redirect('dashboard');
                 }
             }
         }
@@ -74,9 +75,13 @@ class AuthController extends Controller
      */
     public function logout()
     {
-        Auth::logout();
-        set_flash('success', 'You have been logged out.');
-        redirect('login');
+         // Log BEFORE destroying session (so we still have the user ID)
+    if (Auth::check()) {
+        ActivityLogger::log('user_logout', 'Admin logged out');
+    }
+    Auth::logout();
+    set_flash('success', 'You have been logged out.');
+    redirect('login');
     }
 }
 

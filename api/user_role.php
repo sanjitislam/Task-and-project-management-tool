@@ -9,6 +9,7 @@ if (!defined('BASE_URL')) {
 require_once __DIR__ . '/../core/Database.php';
 require_once __DIR__ . '/../core/Model.php';
 require_once __DIR__ . '/../core/Auth.php';
+require_once __DIR__ . '/../core/ActivityLogger.php';      // ← NEW
 require_once __DIR__ . '/../helpers/functions.php';
 require_once __DIR__ . '/../models/UserModel.php';
 
@@ -48,7 +49,6 @@ if (!in_array($newRole, $allowed)) {
     exit;
 }
 
-// Safety: don't let an admin demote themselves (would lock them out)
 if ($id === (int)Auth::id() && $newRole !== 'admin') {
     echo json_encode(['success' => false, 'message' => 'You cannot change your own role.']);
     exit;
@@ -64,6 +64,13 @@ try {
     }
 
     if ($model->changeRole($id, $newRole)) {
+
+        // ← NEW: Log the action
+        ActivityLogger::log(
+            'user_role_changed',
+            'User ID ' . $id . ' role changed to: ' . $newRole
+        );
+
         echo json_encode([
             'success'  => true,
             'message'  => 'Role updated to ' . ucfirst(str_replace('_',' ',$newRole)),

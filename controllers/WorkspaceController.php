@@ -52,6 +52,10 @@ class WorkspaceController extends Controller
         }
 
         if ($workspaceModel->delete($id)) {
+                ActivityLogger::log(
+                'workspace_deleted',
+                 'Workspace deleted: "' . $workspace['name'] . '"'
+                 );
             set_flash('success', "Workspace \"{$workspace['name']}\" deleted successfully.");
         } else {
             set_flash('error', 'Failed to delete workspace. It may have related data.');
@@ -115,6 +119,11 @@ class WorkspaceController extends Controller
         $workspaceModel = $this->model('WorkspaceModel');
 
         if ($workspaceModel->removeMember($workspaceId, $userId)) {
+            ActivityLogger::log(
+        'member_removed',
+        'Member removed from workspace ID ' . $workspaceId,
+        $workspaceId
+    );
             set_flash('success', 'Member removed from workspace.');
         } else {
             set_flash('error', 'Failed to remove member.');

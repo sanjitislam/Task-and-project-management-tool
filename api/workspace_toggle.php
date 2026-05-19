@@ -1,8 +1,4 @@
 <?php
-/**
- * AJAX endpoint — toggle active/inactive status of a workspace.
- */
-
 define('APP_RUNNING', true);
 session_start();
 
@@ -13,26 +9,24 @@ if (!defined('BASE_URL')) {
 require_once __DIR__ . '/../core/Database.php';
 require_once __DIR__ . '/../core/Model.php';
 require_once __DIR__ . '/../core/Auth.php';
+require_once __DIR__ . '/../core/ActivityLogger.php';      // ← NEW
 require_once __DIR__ . '/../helpers/functions.php';
 require_once __DIR__ . '/../models/WorkspaceModel.php';
 
 header('Content-Type: application/json');
 
-// Security
 if (!Auth::check() || Auth::role() !== 'admin') {
     http_response_code(403);
     echo json_encode(['success' => false, 'message' => 'Unauthorized']);
     exit;
 }
 
-// Only accept POST
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
     echo json_encode(['success' => false, 'message' => 'Method not allowed']);
     exit;
 }
 
-// CSRF check
 $input = json_decode(file_get_contents('php://input'), true);
 $token = $input['csrf_token'] ?? '';
 
@@ -58,6 +52,15 @@ try {
 
     $model->toggleActive($id);
     $newStatus = $model->getActiveStatus($id);
+
+    // ← NEW: Log the action
+    $action = $newStatus ? 'workspace_activated' : 'workspace_deactivated';
+    $ws = $model->findById($id);
+    ActivityLogger::log(
+        $action,
+        'Workspace ' . ($newStatus ? 'activated' : 'deactivated') . ': ' . ($ws['name'] ?? '?'),
+        $id
+    );
 
     echo json_encode([
         'success'    => true,

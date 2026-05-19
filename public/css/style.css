@@ -894,3 +894,29 @@ body {
         column-gap: 30px;
     }
 }
+
+/* ============ DATE FILTER INPUTS ============ */
+.filter-input {
+    padding: 9px 12px;
+    border: 1px solid #d0d7de;
+    border-radius: 6px;
+    font-size: 14px;
+    background: #fff;
+}
+
+.filter-input:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102,126,234,0.15);
+}
+
+/* ============ LOG TABLE ============ */
+.log-time {
+    white-space: nowrap;
+    font-size: 13px;
+}
+
+.log-description {
+    max-width: 400px;
+    word-wrap: break-word;
+}

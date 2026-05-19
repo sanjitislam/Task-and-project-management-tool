@@ -9,6 +9,7 @@ if (!defined('BASE_URL')) {
 require_once __DIR__ . '/../core/Database.php';
 require_once __DIR__ . '/../core/Model.php';
 require_once __DIR__ . '/../core/Auth.php';
+require_once __DIR__ . '/../core/ActivityLogger.php';      // ← NEW
 require_once __DIR__ . '/../helpers/functions.php';
 require_once __DIR__ . '/../models/UserModel.php';
 
@@ -57,6 +58,13 @@ try {
 
     $model->toggleActive($id);
     $newStatus = $model->getActiveStatus($id);
+
+    // ← NEW: Log the action
+    $action = $newStatus ? 'user_activated' : 'user_deactivated';
+    ActivityLogger::log(
+        $action,
+        'User ' . ($newStatus ? 'activated' : 'deactivated') . ' (ID: ' . $id . ')'
+    );
 
     echo json_encode([
         'success'   => true,

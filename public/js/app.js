@@ -193,6 +193,50 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
    
+      // =============== ACTIVITY LOGS ===============
+    const logFromDate       = document.getElementById('logFromDate');
+    const logToDate         = document.getElementById('logToDate');
+    const logActionFilter   = document.getElementById('logActionFilter');
+    const logUserFilter     = document.getElementById('logUserFilter');
+    const logWorkspaceFilter= document.getElementById('logWorkspaceFilter');
+    const logClearBtn       = document.getElementById('clearLogFilters');
+
+    function performLogFilter() {
+        const ind = document.getElementById('logFilterIndicator');
+        if (ind) ind.textContent = '⏳';
+
+        const params = new URLSearchParams();
+        if (logFromDate        && logFromDate.value)        params.append('from_date',    logFromDate.value);
+        if (logToDate          && logToDate.value)          params.append('to_date',      logToDate.value);
+        if (logActionFilter    && logActionFilter.value)    params.append('action_type',  logActionFilter.value);
+        if (logUserFilter      && logUserFilter.value)      params.append('user_id',      logUserFilter.value);
+        if (logWorkspaceFilter && logWorkspaceFilter.value) params.append('workspace_id', logWorkspaceFilter.value);
+
+        fetch(BASE_URL + 'api/activity_log_search.php?' + params.toString())
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('logList').innerHTML = data.html;
+                    if (ind) ind.textContent = data.count + ' entries';
+                }
+            })
+            .catch(err => { if (ind) ind.textContent = '❌'; });
+    }
+
+    [logFromDate, logToDate, logActionFilter, logUserFilter, logWorkspaceFilter].forEach(el => {
+        if (el) el.addEventListener('change', performLogFilter);
+    });
+
+    if (logClearBtn) {
+        logClearBtn.addEventListener('click', function () {
+            if (logFromDate)        logFromDate.value = '';
+            if (logToDate)          logToDate.value = '';
+            if (logActionFilter)    logActionFilter.value = '';
+            if (logUserFilter)      logUserFilter.value = '';
+            if (logWorkspaceFilter) logWorkspaceFilter.value = '';
+            performLogFilter();
+        });
+    }
     // =============== Generic ===============
     attachDeleteConfirmations();
 });
