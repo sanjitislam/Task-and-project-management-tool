@@ -1,3 +1,9 @@
+/**
+ * Task Management Admin — JavaScript
+ * Includes: Dashboard, Workspaces, Users, Projects, Tasks,
+ *           Activity Logs, Support Tickets
+ */
+
 const BASE_URL = '/task_management/';
 
 function getCsrfToken() {
@@ -192,14 +198,14 @@ document.addEventListener('DOMContentLoaded', function () {
             performTaskFilter();
         });
     }
-   
-      // =============== ACTIVITY LOGS ===============
-    const logFromDate       = document.getElementById('logFromDate');
-    const logToDate         = document.getElementById('logToDate');
-    const logActionFilter   = document.getElementById('logActionFilter');
-    const logUserFilter     = document.getElementById('logUserFilter');
-    const logWorkspaceFilter= document.getElementById('logWorkspaceFilter');
-    const logClearBtn       = document.getElementById('clearLogFilters');
+
+    // =============== ACTIVITY LOGS ===============
+    const logFromDate        = document.getElementById('logFromDate');
+    const logToDate          = document.getElementById('logToDate');
+    const logActionFilter    = document.getElementById('logActionFilter');
+    const logUserFilter      = document.getElementById('logUserFilter');
+    const logWorkspaceFilter = document.getElementById('logWorkspaceFilter');
+    const logClearBtn        = document.getElementById('clearLogFilters');
 
     function performLogFilter() {
         const ind = document.getElementById('logFilterIndicator');
@@ -237,6 +243,10 @@ document.addEventListener('DOMContentLoaded', function () {
             performLogFilter();
         });
     }
+
+    // =============== SUPPORT TICKETS ===============
+    attachTicketEvents();
+
     // =============== Generic ===============
     attachDeleteConfirmations();
 });
@@ -376,6 +386,55 @@ function attachUserEvents() {
             })
             .catch(err => {
                 this.value = oldRole;
+                alert('Network error: ' + err.message);
+            })
+            .finally(() => { this.disabled = false; });
+        });
+    });
+}
+
+function attachTicketEvents() {
+    document.querySelectorAll('.toggle-ticket').forEach(btn => {
+        if (btn.dataset.bound) return;
+        btn.dataset.bound = '1';
+
+        btn.addEventListener('click', function () {
+            const id = this.dataset.id;
+            const originalHTML = this.innerHTML;
+            const isCurrentlyOpen = this.classList.contains('open');
+
+            const confirmMsg = isCurrentlyOpen
+                ? 'Mark this ticket as RESOLVED?'
+                : 'Re-open this ticket?';
+            if (!confirm(confirmMsg)) return;
+
+            this.disabled = true;
+            this.innerHTML = '⏳';
+
+            fetch(BASE_URL + 'api/ticket_resolve.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: id, csrf_token: getCsrfToken() })
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    if (data.new_status === 'resolved') {
+                        this.classList.remove('open');
+                        this.classList.add('resolved');
+                        this.innerHTML = '✅ Resolved';
+                    } else {
+                        this.classList.remove('resolved');
+                        this.classList.add('open');
+                        this.innerHTML = '🔴 Open';
+                    }
+                } else {
+                    this.innerHTML = originalHTML;
+                    alert('Error: ' + data.message);
+                }
+            })
+            .catch(err => {
+                this.innerHTML = originalHTML;
                 alert('Network error: ' + err.message);
             })
             .finally(() => { this.disabled = false; });

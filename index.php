@@ -47,6 +47,8 @@ $routes = [
     'projects'      => ['ProjectController',      'index'],
     'tasks'         => ['TaskController',         'index'],
     'activity_logs' => ['ActivityLogController',  'index'],
+    'support_tickets'=> ['SupportTicketController','index'],
+
 ];
 
 // ---------- Dispatch ----------

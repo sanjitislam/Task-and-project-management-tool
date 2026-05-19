@@ -920,3 +920,105 @@ body {
     max-width: 400px;
     word-wrap: break-word;
 }
+
+/* ============ SUPPORT TICKETS ============ */
+.ticket-stats {
+    display: flex;
+    gap: 10px;
+}
+
+.ticket-stats .badge {
+    font-size: 13px;
+    padding: 6px 14px;
+}
+
+.row-priority {
+    background: #fff9f5;
+}
+
+.row-priority:hover {
+    background: #fff3eb;
+}
+
+.badge-status-open {
+    background: #fee;
+    color: #c33;
+    border: 1px solid #fcc;
+}
+
+.badge-status-resolved {
+    background: #efe;
+    color: #2a7;
+    border: 1px solid #cec;
+}
+
+/* ============ TOGGLE TICKET BUTTON ============ */
+.toggle-ticket {
+    border: none;
+    cursor: pointer;
+    padding: 5px 12px;
+    border-radius: 16px;
+    font-size: 12px;
+    font-weight: 600;
+    transition: all 0.2s;
+}
+
+.toggle-ticket.open {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.toggle-ticket.open:hover {
+    background: #f5c6cb;
+}
+
+.toggle-ticket.resolved {
+    background: #d4edda;
+    color: #155724;
+}
+
+.toggle-ticket.resolved:hover {
+    background: #c3e6cb;
+}
+
+.toggle-ticket:disabled {
+    opacity: 0.5;
+    cursor: wait;
+}
+
+/* ============ TICKET CONTENT ============ */
+.ticket-subject {
+    font-size: 18px;
+    font-weight: 600;
+    color: #2c3e50;
+    padding: 10px 0;
+}
+
+.ticket-message {
+    background: #f8f9fa;
+    padding: 14px;
+    border-radius: 8px;
+    border-left: 3px solid #667eea;
+    line-height: 1.7;
+    color: #2c3e50;
+    white-space: pre-wrap;
+}
+
+/* ============ TEXTAREA STYLE ============ */
+.form-group textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #d0d7de;
+    border-radius: 6px;
+    font-size: 14px;
+    font-family: inherit;
+    line-height: 1.5;
+    resize: vertical;
+    min-height: 100px;
+}
+
+.form-group textarea:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102,126,234,0.15);
+}
