@@ -48,6 +48,8 @@ $routes = [
     'tasks'         => ['TaskController',         'index'],
     'activity_logs' => ['ActivityLogController',  'index'],
     'support_tickets'=> ['SupportTicketController','index'],
+    'analytics'     => ['AnalyticsController',    'index'],
+    'settings'      => ['SettingsController',     'index'],
 
 ];
 

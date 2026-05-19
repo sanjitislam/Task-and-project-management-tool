@@ -1,7 +1,15 @@
 /**
  * Task Management Admin — JavaScript
- * Includes: Dashboard, Workspaces, Users, Projects, Tasks,
- *           Activity Logs, Support Tickets
+ * 
+ * Features included:
+ * - Dashboard (refresh stats)
+ * - Workspaces (search, toggle, delete confirm)
+ * - Users (search, role filter, toggle, role change)
+ * - Projects (multi-filter)
+ * - Tasks (multi-filter)
+ * - Activity Logs (multi-filter with dates)
+ * - Support Tickets (resolve toggle)
+ * - Announcements (toggle active/inactive)
  */
 
 const BASE_URL = '/task_management/';
@@ -247,11 +255,17 @@ document.addEventListener('DOMContentLoaded', function () {
     // =============== SUPPORT TICKETS ===============
     attachTicketEvents();
 
+    // =============== ANNOUNCEMENTS ===============
+    attachAnnouncementEvents();
+
     // =============== Generic ===============
     attachDeleteConfirmations();
 });
 
-// ============ HELPERS ============
+
+// ============================================
+// HELPERS — defined outside DOMContentLoaded
+// ============================================
 
 function updateStat(elementId, newValue) {
     const el = document.getElementById(elementId);
@@ -263,6 +277,13 @@ function updateStat(elementId, newValue) {
     }
 }
 
+function flashElement(el) {
+    el.classList.remove('flash-update');
+    void el.offsetWidth;
+    el.classList.add('flash-update');
+}
+
+// ============ WORKSPACE EVENTS ============
 function attachWorkspaceEvents() {
     document.querySelectorAll('.toggle-status').forEach(btn => {
         if (btn.dataset.bound) return;
@@ -307,7 +328,9 @@ function attachWorkspaceEvents() {
     attachDeleteConfirmations();
 }
 
+// ============ USER EVENTS ============
 function attachUserEvents() {
+    // Toggle user status
     document.querySelectorAll('.toggle-user-status').forEach(btn => {
         if (btn.dataset.bound) return;
         btn.dataset.bound = '1';
@@ -348,6 +371,7 @@ function attachUserEvents() {
         });
     });
 
+    // Change user role
     document.querySelectorAll('.role-select').forEach(sel => {
         if (sel.dataset.bound) return;
         sel.dataset.bound = '1';
@@ -389,85 +413,6 @@ function attachUserEvents() {
                 alert('Network error: ' + err.message);
             })
             .finally(() => { this.disabled = false; });
-        });
-    });
-}
-
-function attachTicketEvents() {
-    document.querySelectorAll('.toggle-ticket').forEach(btn => {
-        if (btn.dataset.bound) return;
-        btn.dataset.bound = '1';
-
-        btn.addEventListener('click', function () {
-            const id = this.dataset.id;
-            const originalHTML = this.innerHTML;
-            const isCurrentlyOpen = this.classList.contains('open');
-
-            const confirmMsg = isCurrentlyOpen
-                ? 'Mark this ticket as RESOLVED?'
-                : 'Re-open this ticket?';
-            if (!confirm(confirmMsg)) return;
-
-            this.disabled = true;
-            this.innerHTML = '⏳';
-
-            fetch(BASE_URL + 'api/ticket_resolve.php', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ id: id, csrf_token: getCsrfToken() })
-            })
-            .then(r => r.json())
-            .then(data => {
-                if (data.success) {
-                    if (data.new_status === 'resolved') {
-                        this.classList.remove('open');
-                        this.classList.add('resolved');
-                        this.innerHTML = '✅ Resolved';
-                    } else {
-                        this.classList.remove('resolved');
-                        this.classList.add('open');
-                        this.innerHTML = '🔴 Open';
-                    }
-                } else {
-                    this.innerHTML = originalHTML;
-                    alert('Error: ' + data.message);
-                }
-            })
-            .catch(err => {
-                this.innerHTML = originalHTML;
-                alert('Network error: ' + err.message);
-            })
-            .finally(() => { this.disabled = false; });
-        });
-    });
-}
-
-function flashElement(el) {
-    el.classList.remove('flash-update');
-    void el.offsetWidth;
-    el.classList.add('flash-update');
-}
-
-function attachDeleteConfirmations() {
-    document.querySelectorAll('.confirm-delete').forEach(link => {
-        if (link.dataset.bound) return;
-        link.dataset.bound = '1';
-        link.addEventListener('click', function (e) {
-            const name = this.dataset.name || 'this item';
-            if (!confirm('⚠️ Delete "' + name + '"?\n\nThis cannot be undone.')) {
-                e.preventDefault();
-            }
-        });
-    });
-
-    document.querySelectorAll('.confirm-remove').forEach(link => {
-        if (link.dataset.bound) return;
-        link.dataset.bound = '1';
-        link.addEventListener('click', function (e) {
-            const name = this.dataset.name || 'this member';
-            if (!confirm('Remove ' + name + ' from this workspace?')) {
-                e.preventDefault();
-            }
         });
     });
 }
